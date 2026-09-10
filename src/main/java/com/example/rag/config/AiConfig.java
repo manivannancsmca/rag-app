@@ -16,7 +16,6 @@ public class AiConfig {
     private static final Logger log = LoggerFactory.getLogger(AiConfig.class);
 
     // ── ChatClient with default system persona ────────────────
-
     @Bean
     ChatClient chatClient(ChatClient.Builder builder) {
         return builder
@@ -34,6 +33,7 @@ public class AiConfig {
                 .build();
     }
 
+    
     // ── Token-aware text splitter ─────────────────────────────
     //
     //  FIX: Replaced the 5-parameter constructor that doesn't exist
@@ -69,4 +69,5 @@ public class AiConfig {
         log.info("Ingestion thread pool: core=2, max=4, queue=20");
         return executor;
     }
+    
 }
