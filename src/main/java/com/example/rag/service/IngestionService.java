@@ -33,6 +33,7 @@ public class IngestionService {
     private final int batchSize;
 
     /** In-memory tracking of ingestion progress. Production: use Redis or DB. */
+    
     private final ConcurrentHashMap<String, IngestionProgress> progressMap =
             new ConcurrentHashMap<>();
 
@@ -54,6 +55,7 @@ public class IngestionService {
     /**
      * Accepts a PDF upload, immediately returns, and kicks off async processing.
      */
+    
     public UploadResponse upload(MultipartFile file) {
         String documentId = UUID.randomUUID().toString();
         String fileName = file.getOriginalFilename() != null
@@ -82,6 +84,7 @@ public class IngestionService {
     /**
      * Returns current ingestion progress for a document.
      */
+    
     public IngestionProgress getProgress(String documentId) {
         IngestionProgress progress = progressMap.get(documentId);
         if (progress == null) {
@@ -163,4 +166,5 @@ public class IngestionService {
                 null
         ));
     }
+    
 }
