@@ -1,5 +1,6 @@
 server:
   port: 8080
+  
   servlet:
     multipart:
       max-file-size: 200MB
@@ -15,6 +16,7 @@ spring:
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver
+    
     hikari:
       maximum-pool-size: 10
       minimum-idle: 5
