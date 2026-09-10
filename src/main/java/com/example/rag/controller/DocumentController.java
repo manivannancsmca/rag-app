@@ -23,7 +23,6 @@ import org.springframework.web.multipart.MultipartFile;
 public class DocumentController {
 
     private static final Logger log = LoggerFactory.getLogger(DocumentController.class);
-
     private final IngestionService ingestionService;
 
     public DocumentController(IngestionService ingestionService) {
@@ -74,4 +73,5 @@ public class DocumentController {
         IngestionProgress progress = ingestionService.getProgress(documentId);
         return ResponseEntity.ok(progress);
     }
+    
 }
