@@ -29,3 +29,19 @@ id	VARCHAR(255)	Unique identifier
 content	TEXT	Text content
 metadata	JSONB	Additional metadata
 embedding	VECTOR(768)	768-dimensional vector embedding
+
+3. Create the Index
+Create an HNSW index for fast cosine-similarity searches:
+
+CREATE INDEX IF NOT EXISTS idx_vector_store_embedding
+    ON vector_store
+    USING hnsw (embedding vector_cosine_ops)
+    WITH (m = 16, ef_construction = 64);
+
+This index improves the performance of vector similarity searches.
+
+4. Verify Everything
+Check Installed Extensions
+Run:
+
+\dx
