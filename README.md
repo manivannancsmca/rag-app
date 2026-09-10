@@ -1,6 +1,21 @@
 # PostgreSQL + PgVector Setup
 
-This guide sets up the PostgreSQL `vector` extension, creates the `vector_store` table, adds an HNSW index for similarity search, and verifies the setup.
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15%2B-blue?logo=postgresql)
+![pgvector](https://img.shields.io/badge/pgvector-vector--extension-orange)
+![License](https://img.shields.io/badge/license-MIT-green)
+
+A step-by-step guide to set up the PostgreSQL `vector` extension, create
+the `vector_store` table, add an HNSW index for similarity search, and
+verify the setup.
+
+---
+
+## 📋 Table of Contents
+
+1. [Create the Extension](#1-create-the-extension)
+2. [Create the Table](#2-create-the-table)
+3. [Create the Index](#3-create-the-index)
+4. [Verify the Setup](#4-verify-the-setup)
 
 ---
 
@@ -10,120 +25,110 @@ Connect to your PostgreSQL database and run:
 
 ```sql
 CREATE EXTENSION IF NOT EXISTS vector;
+```
 
+> **Note:** Requires PostgreSQL 11+ and the `pgvector` extension installed
+> on the host system.
 
-2. Create the Table
-Create the vector_store table:
+---
 
+## 2. Create the Table
+
+Create the `vector_store` table:
+
+```sql
 CREATE TABLE IF NOT EXISTS vector_store (
     id        VARCHAR(255) PRIMARY KEY,
     content   TEXT,
     metadata  JSONB DEFAULT '{}'::jsonb,
     embedding VECTOR(768)
 );
+```
 
-The table contains:
+### Table Schema
 
-Column	Type	Description
-id	VARCHAR(255)	Unique identifier
-content	TEXT	Text content
-metadata	JSONB	Additional metadata
-embedding	VECTOR(768)	768-dimensional vector embedding
+| Column      | Type           | Description                     |
+|-------------|----------------|---------------------------------|
+| `id`        | `VARCHAR(255)` | Unique identifier               |
+| `content`   | `TEXT`         | Text content                    |
+| `metadata`  | `JSONB`        | Additional metadata             |
+| `embedding` | `VECTOR(768)`  | 768-dimensional vector embedding |
 
-3. Create the Index
-Create an HNSW index for fast cosine-similarity searches:
+---
 
-CREATE INDEX IF NOT EXISTS idx_vector_store_embedding
-    ON vector_store
-    USING hnsw (embedding vector_cosine_ops)
-    WITH (m = 16, ef_construction = 64);
+## 3. Create the Index
 
-This index improves the performance of vector similarity searches.
+Add an HNSW index for fast approximate nearest-neighbor search:
 
-Expected output:
+```sql
+CREATE INDEX IF NOT EXISTS vector_store_embedding_idx
+ON vector_store
+USING hnsw (embedding vector_cosine_ops)
+WITH (m = 16, ef_construction = 64);
+```
 
-                        List of installed extensions
-  Name   | Version |   Schema   |         Description
----------+---------+------------+------------------------------
- plpgsql | 1.0     | pg_catalog | PL/pgSQL procedural language
- vector  | 0.8.0   | public     | vector data type and ...
+| Parameter         | Value | Purpose                                 |
+|-------------------|-------|-----------------------------------------|
+| `m`               | 16    | Max connections per layer               |
+| `ef_construction` | 64    | Build-time search breadth               |
+| `vector_cosine_ops` | —   | Cosine distance operator class          |
 
+> **Tip:** Use `vector_l2_ops` for Euclidean distance or
+> `vector_ip_ops` for inner product.
 
-4. Verify Everything
-Check Installed Extensions
-Run:
+---
 
-\dx
+## 4. Verify the Setup
 
-Check the Table
-Run:
+Confirm the extension, table, and index exist:
 
-\dt vector_store
+```sql
+-- Check extension
+SELECT extname, extversion FROM pg_extension WHERE extname = 'vector';
 
-Expected output:
-
-            List of relations
- Schema |     Name      | Type  |  Owner
---------+---------------+-------+----------
- public | vector_store  | table | postgres
-
-Check the Table Structure
-Run:
-
+-- Check table
 \d vector_store
 
-Expected output:
+-- Check index
+SELECT indexname, indexdef
+FROM pg_indexes
+WHERE tablename = 'vector_store';
+```
 
-             Table "public.vector_store"
-  Column   |          Type          | Collation | Nullable | Default
------------+------------------------+-----------+----------+---------
- id        | character varying(255) |           | not null |
- content   | text                   |           |          |
- metadata  | jsonb                  |           |          | '{}'::jsonb
- embedding | vector(768)            |           |          |
-Indexes:
-    "vector_store_pkey" PRIMARY KEY, btree (id)
-    "idx_vector_store_embedding" hnsw (embedding vector_cosine_ops) WITH (m='16', ef_construction='64')
+Expected output: the `vector` extension is listed, the `vector_store`
+table has four columns, and the HNSW index is present.
 
-The output confirms:
+---
 
-vector_store table exists.
-embedding uses vector(768).
-Primary key exists on id.
-HNSW index exists on embedding.
-Cosine similarity is configured through vector_cosine_ops.
+## 🚀 Quick Test Query
 
-5. Exit psql
-When finished, exit the PostgreSQL shell:
+Insert and search a sample vector:
 
-\q
-
-Fix the init-db.sql So This Never Happens Again
-
-To make sure the database is initialized correctly when the PostgreSQL container is created, replace the entire contents of:
-
-scripts/init-db.sql
-
-with:
-
--- scripts/init-db.sql
-
--- 1. Extension (must come first)
-CREATE EXTENSION IF NOT EXISTS vector;
-
--- 2. Table
-CREATE TABLE IF NOT EXISTS vector_store (
-    id        VARCHAR(255) PRIMARY KEY,
-    content   TEXT,
-    metadata  JSONB DEFAULT '{}'::jsonb,
-    embedding VECTOR(768)
+```sql
+INSERT INTO vector_store (id, content, metadata, embedding)
+VALUES (
+    'doc-1',
+    'PostgreSQL with pgvector is powerful.',
+    '{"source": "readme"}'::jsonb,
+    array_fill(0.1, ARRAY[768])::vector
 );
 
--- 3. Index for fast similarity search
-CREATE INDEX IF NOT EXISTS idx_vector_store_embedding
-    ON vector_store
-    USING hnsw (embedding vector_cosine_ops)
-    WITH (m = 16, ef_construction = 64);
+SELECT id, content
+FROM vector_store
+ORDER BY embedding <=> array_fill(0.1, ARRAY[768])::vector
+LIMIT 5;
+```
 
-Important: PostgreSQL initialization scripts mounted into the container typically run only when the database is initialized for the first time. If the PostgreSQL data volume already exists, changing init-db.sql alone will not rerun the script.
+---
 
+## 📚 References
+
+- [pgvector GitHub](https://github.com/pgvector/pgvector)
+- [PostgreSQL Documentation](https://www.postgresql.org/docs/)
+- [HNSW Paper](https://arxiv.org/abs/1603.09320)
+
+---
+
+## 📝 License
+
+MIT © Your Name
