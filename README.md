@@ -84,3 +84,46 @@ Expected output:
 Indexes:
     "vector_store_pkey" PRIMARY KEY, btree (id)
     "idx_vector_store_embedding" hnsw (embedding vector_cosine_ops) WITH (m='16', ef_construction='64')
+
+The output confirms:
+
+vector_store table exists.
+embedding uses vector(768).
+Primary key exists on id.
+HNSW index exists on embedding.
+Cosine similarity is configured through vector_cosine_ops.
+
+5. Exit psql
+When finished, exit the PostgreSQL shell:
+
+\q
+
+Fix the init-db.sql So This Never Happens Again
+
+To make sure the database is initialized correctly when the PostgreSQL container is created, replace the entire contents of:
+
+scripts/init-db.sql
+
+with:
+
+-- scripts/init-db.sql
+
+-- 1. Extension (must come first)
+CREATE EXTENSION IF NOT EXISTS vector;
+
+-- 2. Table
+CREATE TABLE IF NOT EXISTS vector_store (
+    id        VARCHAR(255) PRIMARY KEY,
+    content   TEXT,
+    metadata  JSONB DEFAULT '{}'::jsonb,
+    embedding VECTOR(768)
+);
+
+-- 3. Index for fast similarity search
+CREATE INDEX IF NOT EXISTS idx_vector_store_embedding
+    ON vector_store
+    USING hnsw (embedding vector_cosine_ops)
+    WITH (m = 16, ef_construction = 64);
+
+Important: PostgreSQL initialization scripts mounted into the container typically run only when the database is initialized for the first time. If the PostgreSQL data volume already exists, changing init-db.sql alone will not rerun the script.
+
