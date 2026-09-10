@@ -40,6 +40,15 @@ CREATE INDEX IF NOT EXISTS idx_vector_store_embedding
 
 This index improves the performance of vector similarity searches.
 
+Expected output:
+
+                        List of installed extensions
+  Name   | Version |   Schema   |         Description
+---------+---------+------------+------------------------------
+ plpgsql | 1.0     | pg_catalog | PL/pgSQL procedural language
+ vector  | 0.8.0   | public     | vector data type and ...
+
+
 4. Verify Everything
 Check Installed Extensions
 Run:
