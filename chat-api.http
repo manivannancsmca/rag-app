@@ -1,0 +1,7 @@
+### Ask a question
+POST http://localhost:8080/api/chat
+Content-Type: application/json
+
+{
+  "question": "What is the main thesis of Chapter 3?"
+}

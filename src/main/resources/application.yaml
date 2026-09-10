@@ -1,0 +1,87 @@
+server:
+  port: 8080
+  servlet:
+    multipart:
+      max-file-size: 200MB
+      max-request-size: 200MB
+
+spring:
+  application:
+    name: rag-app
+
+  # ── PostgreSQL datasource ──────────────────────────────────
+  datasource:
+    url: jdbc:postgresql://localhost:5432/ragdb
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+
+  # ── Spring AI — Ollama ─────────────────────────────────────
+  ai:
+    ollama:
+      base-url: http://localhost:11434
+      chat:
+        model: llama3.2:1b   #llama3.1
+        options:
+          temperature: 0.3
+          num-predict: 2048
+          top-p: 0.9
+          repeat-penalty: 1.1
+      embedding:
+        model: nomic-embed-text
+
+    # ── Spring AI — PGVector store ───────────────────────────
+    vectorstore:
+      pgvector:
+        index-type: HNSW
+        distance-type: COSINE_DISTANCE
+        dimensions: 768
+        table-name: vector_store
+
+# ── RAG tuning knobs ────────────────────────────────────────
+rag:
+  chunking:
+    chunk-size: 800          # tokens per chunk
+    min-chunk-size-chars: 350
+    min-chunk-length-tokens: 10
+    max-num-chunks: 10000
+  retrieval:
+    top-k: 5
+    similarity-threshold: 0.40
+  ingestion:
+    batch-size: 50           # chunks per embedding batch
+
+# ── Actuator ─────────────────────────────────────────────────
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,openapi
+  endpoint:
+    health:
+      show-details: always
+
+# ── Logging ──────────────────────────────────────────────────
+logging:
+  level:
+    com.example.rag: DEBUG
+    org.springframework.ai: INFO
+    org.springframework.jdbc: WARN
+
+
+# ── Swagger / OpenAPI ─────────────────────────────────────────
+springdoc:
+  api-docs:
+    path: /v3/api-docs          # Raw OpenAPI JSON spec
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html      # Swagger UI entry point
+    tags-sorter: alpha
+    operations-sorter: method
+    try-it-out-enabled: true
+    filter: true
+    persist-authorization: true  # keeps auth tokens across refreshes
