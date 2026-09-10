@@ -24,7 +24,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class ChatController {
 
     private static final Logger log = LoggerFactory.getLogger(ChatController.class);
-
     private final RagService ragService;
 
     public ChatController(RagService ragService) {
@@ -63,4 +62,5 @@ public class ChatController {
 
         return ResponseEntity.ok(response);
     }
+    
 }
