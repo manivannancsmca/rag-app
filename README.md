@@ -54,3 +54,33 @@ Check Installed Extensions
 Run:
 
 \dx
+
+Check the Table
+Run:
+
+\dt vector_store
+
+Expected output:
+
+            List of relations
+ Schema |     Name      | Type  |  Owner
+--------+---------------+-------+----------
+ public | vector_store  | table | postgres
+
+Check the Table Structure
+Run:
+
+\d vector_store
+
+Expected output:
+
+             Table "public.vector_store"
+  Column   |          Type          | Collation | Nullable | Default
+-----------+------------------------+-----------+----------+---------
+ id        | character varying(255) |           | not null |
+ content   | text                   |           |          |
+ metadata  | jsonb                  |           |          | '{}'::jsonb
+ embedding | vector(768)            |           |          |
+Indexes:
+    "vector_store_pkey" PRIMARY KEY, btree (id)
+    "idx_vector_store_embedding" hnsw (embedding vector_cosine_ops) WITH (m='16', ef_construction='64')
