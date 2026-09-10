@@ -45,4 +45,5 @@ public class OpenApiConfig {
                                 .url("http://localhost:" + serverPort)
                                 .description("Local development")));
     }
+    
 }
